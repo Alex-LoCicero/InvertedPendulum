@@ -1,32 +1,47 @@
 #include "MotorController.h"
-// #include "AccelStepper.h"
+#include "PIDController.h"
+#include "PinChangeInterrupt.h"
 
 // Define pin connections & motor's steps per revolution
 const int dirPin = 5;
 const int stepPin = 4;
-const int stepsPerRevolution = 200;
+const int stepsPerRevolution = 800;
 const int phaseA = 2;
 const int phaseB = 3;
+const int resetPin = 6;
 
-volatile long counter = 0; // rotary encoder position 
-volatile float position = 0; // stepper motor position
+volatile long angle = 0; // rotary encoder position 
+volatile bool enable = false; // trigger for encoder reset  
+const unsigned long debounceDelay = 200; // debounce delay in ms
+volatile unsigned long lastDebounceTime = 0;
 
-// use OOP structure 
+double Input, Output, Setpoint = 610; 
+
+double kp = 1.0, ki = 0.0, kd = 0.0; 
+
+// initialize stepper
 MotorController motor(stepPin, dirPin, stepsPerRevolution); 
+PIDController pid(&Input, &Output, &Setpoint, kp, ki, kd);
 
-// AccelStepper stepper(1, stepPin, dirPin); // Defaults to AccelStepper::FULL4WIRE (4 pins) on 2, 3, 4, 5
+void move_stepper(int value){
+  if (motor.distToGo() == 0)
+    {
+      motor.move(value % stepsPerRevolution);
+    }
+    motor.run();
+}
 
 void setup()
 {
   // Serial communication 
   Serial.begin(9600);
-  // while(!Serial);
-
+  
   // Declare pins modes
   pinMode(stepPin, OUTPUT);
   pinMode(dirPin, OUTPUT);
   pinMode(phaseA, INPUT);
   pinMode(phaseB, INPUT);
+  pinMode(resetPin, INPUT_PULLUP);
 
   // turn on pullup resistors
   digitalWrite(phaseA, HIGH);       
@@ -39,58 +54,47 @@ void setup()
   // B rising pulse from encodenren activated ai1(). AttachInterrupt 1 is DigitalPin nr 3 on moust Arduino.
   attachInterrupt(digitalPinToInterrupt(phaseB), ai1, RISING);
 
-  // // Jog motor
+  // Attach the new PinChangeInterrupt and event fuction 
+  attachPCINT(digitalPinToPCINT(resetPin), control_enable, CHANGE);
+
+  // Jog motor
   motor.begin();
-  motor.jog(600);
   motor.setMinPulseWidth(100);	
+
+  // encoder initialization
+
 
 }
 void loop()
 {
-    // encoder feedback 
-    // Serial.println(counter);
-    // motor feedback 
-    // position = motor.currentPosition();
-    // Serial.println(position);
-    
+    // print encoder feedback 
+//    Serial.println(angle);
+    Serial.print("Input:");
+    Serial.println(Input);
+    Serial.print("Output:");
+    Serial.println(Output);
 
-    motor.update();
-    // delayMicroseconds(2000);
-    // delay(10);
-
-	// // Set motor direction clockwise
-	// digitalWrite(dirPin, LOW);
-
-	// // Spin motor slowly
-	// for(int x = 0; x < stepsPerRevolution; x++)
-	// {
-	// 	digitalWrite(stepPin, HIGH);
-	// 	delayMicroseconds(2000);
-	// 	digitalWrite(stepPin, LOW);
-	// 	delayMicroseconds(2000);
-	// }
-	// delay(1000); // Wait a second
-	
-  	// // // // Set motor direction clockwise
-	// digitalWrite(dirPin, HIGH);
-
-	// // Spin motor slowly
-	// for(int x = 0; x < stepsPerRevolution; x++)
-	// {
-	// 	digitalWrite(stepPin, HIGH);
-	// 	delayMicroseconds(2000);
-	// 	digitalWrite(stepPin, LOW);
-	// 	delayMicroseconds(2000);
-	// }
+    if (enable) { // enable motor control
+      
+      // position = motor.currentPosition();
+      // Serial.println(position);
+      
+      // motor commands
+      // motor.jog(600);
+      // motor.update();
+      Input = angle;
+      pid.compute();
+      move_stepper(Output);
+    }
 }
 
 void ai0() {
   // ai0 is activated if DigitalPin nr 2 is going from LOW to HIGH
   // Check pin 3 to determine the direction
   if(digitalRead(3)==LOW) {
-    counter++;
+    angle++;
   }else{
-    counter--;
+    angle--;
   }
 }
 
@@ -98,10 +102,17 @@ void ai1() {
   // ai0 is activated if DigitalPin nr 3 is going from LOW to HIGH
   // Check with pin 2 to determine the direction
   if(digitalRead(2)==LOW) {
-    counter--;
+    angle--;
   }else{
-    counter++;
+    angle++;
   }
 }
 
-
+void control_enable() {
+  unsigned long currentMillis = millis();
+  // activate interrupt if DigitalPin nr is going from HIGH to LOW
+  if (currentMillis - lastDebounceTime >= debounceDelay) {
+    enable = !enable;
+    lastDebounceTime = currentMillis;
+  }
+}

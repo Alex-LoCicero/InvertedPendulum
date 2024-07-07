@@ -2,8 +2,8 @@
 
 #include "PIDController.h"
 
-PIDController::PIDController(float* input, float* output, float*setpoint, float kp, float ki, float kd) 
-: pid(input, output, setpoint, kp, ki, kd, DIRECT) {
+PIDController::PIDController(double* input, double* output, double* setpoint, double kp, double ki, double kd) 
+: pid( input,  output,  setpoint, kp, ki, kd, DIRECT) {
     pid.SetMode(AUTOMATIC);
 }
 
@@ -19,7 +19,7 @@ void PIDController::setOutputLimits(float min, float max){
 
 // Set PID gains 
 void PIDController::setTunings(float kp, float ki, float kd){
-    pid.SetTunings(kp, kid, kd);
+    pid.SetTunings(kp, ki, kd);
 }
 
 // Set controller sample time 

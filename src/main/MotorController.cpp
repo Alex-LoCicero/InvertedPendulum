@@ -35,3 +35,15 @@ void MotorController::jog(float speed){
 void MotorController::setMinPulseWidth(unsigned int minWidth){
     stepper.setMinPulseWidth(minWidth);
 }
+
+long MotorController::distToGo(){
+    return stepper.distanceToGo();
+}
+
+void MotorController::run(){
+    stepper.run();
+}
+
+void MotorController::move(long dist){
+    stepper.move(dist);
+}

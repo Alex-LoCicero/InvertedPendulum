@@ -15,6 +15,10 @@ class MotorController {
         void update();
         long currentPosition();
         void setMinPulseWidth(unsigned int minWidth);
+        long distToGo();
+        void run();
+        void move(long dist);
+        
     
     private:
         AccelStepper stepper;
