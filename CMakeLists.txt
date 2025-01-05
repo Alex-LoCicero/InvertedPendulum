@@ -1,20 +1,21 @@
-# cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.0)
 
-# project(ArduinoMotorController)
+project(InvertedPendulum)
 
-# # src files 
-# set(SOURCES
-#     main.cpp
-#     MotorController.cpp
-# )
+# src files 
+set(SOURCES
+    src/MotorController.cpp
+    src/PIDController.cpp
+    main/main.ino
+)
 
-# # header files 
-# set(HEADERS
-#     MtorController.h
-# )
+# header files 
+set(HEADERS
+    inc/MotorController.h
+    inc/PIDController.h
+)
 
-# # Arduino core library 
-# set(ARDUINO_CORE_PATH "../libraries")
-# include_directories(${ARDUINO_CORE_PATH})
-
-# # Arduino Board and Compiler Flags
+# Arduino core library 
+set(ARDUINO_CORE_PATH "../libraries")
+include_directories(${ARDUINO_CORE_PATH})
+include_directories(inc)

@@ -12,9 +12,18 @@ class MotorController {
         void setMaxSpeed(float speed);
         void jog(float speed);
         void setAcceleration(float acceleration);
-        void update();
         long currentPosition();
         void setMinPulseWidth(unsigned int minWidth);
+        void run();
+        void move(long dist);
+        void setEnablePin(uint8_t enablePin);
+        void disableOutputs();
+        void enableOutputs();
+        void setPinsInverted(bool directionInvert, bool stepInvert, bool enableInvert);
+
+        long getTargetPosition();
+        long getPosition();
+        
     
     private:
         AccelStepper stepper;
