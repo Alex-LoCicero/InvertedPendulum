@@ -20,6 +20,7 @@ public:
     Timer timer;
     void update();
     void setState(State newState);
+    State getCurrentState();
 
 private:
     State currentState;

@@ -8,11 +8,11 @@
 #include "InterruptHandler.h"
 
 // Define pins
-const int stepPin = 2;
-const int dirPin = 3;
+const int stepPin = 4;
+const int dirPin = 5;
 const int enablePin = 8;
-const int phaseA = 4;
-const int phaseB = 5;
+const int phaseA = 2;
+const int phaseB = 3;
 const int resetPin = 9;
 const int stepsPerRevolution = 200;
 
@@ -23,12 +23,13 @@ double kp = 1.0, ki = 0.0, kd = 0.0;
 // Initialize motor and controller
 MotorController motor(stepPin, dirPin, stepsPerRevolution); 
 PIDController pid(&Input, &Output, &Setpoint, kp, ki, kd);
-DataRecorder recorder(210, TIMESTAMP | MOTOR_SP | MOTOR_POS);
+DataRecorder recorder(210, TIMESTAMP | MOTOR_SP | MOTOR_POS | JOINT_POS);
 StateMachine stateMachine(motor, pid, recorder);
+Timer Ctimer;
 
 void setup() {
     // Serial communication
-    Serial.begin(115200);
+    Serial.begin(9600);
 
     // Declare pin modes
     pinMode(stepPin, OUTPUT);
@@ -52,17 +53,47 @@ void setup() {
     motor.setMaxSpeed(15000);
     motor.setEnablePin(enablePin);
     motor.setPinsInverted(false, false, true); // Enable pin is active low
+    
+    Ctimer.start();
 }
 
 void loop() {
-    stateMachine.update();
+    Ctimer.reset();
 
-    // // Example condition to change state
-    // if (some_condition_to_enable) {
-    //     stateMachine.setState(ENABLED);
-    // } else if (some_condition_to_save) {
-    //     stateMachine.setState(SAVING);
-    // } else {
-    //     stateMachine.setState(DISABLED);
-    // }
+    if (InterruptHandler::isEnable() && stateMachine.getCurrentState() == DISABLED) {
+        stateMachine.setState(ENABLED);
+    } else if (!InterruptHandler::isEnable() && stateMachine.getCurrentState() == ENABLED) {
+        stateMachine.setState(DISABLED);
+    }
+
+    stateMachine.update();
+    // Serial.println(Ctimer.elapsed(), 8);
+    // Serial.println(InterruptHandler::angle);
+
+    // Print a UTF-8 encoded string with special characters
+    // const char* utf8String = u8"Temperature: 23.5°C";
+
+    // Serial.print("DATA, timestamp: ");
+    // Serial.print(Ctimer.elapsed(), 8);
+    // Serial.println(", motor_sp:100, motor_pos:50, joint_pos:30");
+
+    // Serial.print("DATA, timestamp: ");
+    // Serial.print(Ctimer.elapsed(), 8);
+    // Serial.println(", motor_sp:110, motor_pos:60, joint_pos:40");
+
+    // Serial.print("DATA, timestamp: ");
+    // Serial.print(Ctimer.elapsed(), 8);
+    // Serial.println(", motor_sp:120, motor_pos:70, joint_pos:50");
+
+    // Serial.print("DATA, timestamp: ");
+    // Serial.print(Ctimer.elapsed(), 8);
+    // Serial.println(", motor_sp:130, motor_pos:80, joint_pos:60");
+
+    // Serial.print("DATA, timestamp: ");
+    // Serial.print(Ctimer.elapsed(), 8);
+    // Serial.println(", motor_sp:140, motor_pos:90, joint_pos:70");
+
+    // delay(1000);
+    delay(10);
+    
 }

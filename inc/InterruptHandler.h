@@ -3,18 +3,18 @@
 
 #include <Arduino.h>
 
-class InterruptHandler {
-public:
-    static void ai0();
-    static void ai1();
-    static void control_enable();
+namespace InterruptHandler {
 
-    static volatile long angle;
-    static volatile bool enable;
-    static volatile unsigned long lastDebounceTime;
-    static const unsigned long debounceDelay = 200;
+    void ai0();
+    void ai1();
+    void control_enable();
 
-    static bool isEnable();
+    extern volatile long angle;
+    extern volatile bool enable;
+    extern volatile unsigned long lastDebounceTime;
+    constexpr unsigned long debounceDelay = 200;
+
+    bool isEnable();
 };
 
 #endif // INTERRUPTHANDLER_H

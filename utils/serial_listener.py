@@ -16,8 +16,12 @@ class SerialListener:
 
     def read_data(self) -> str:
         if self.serial_connection.in_waiting > 0:
-            return self.serial_connection.readline().decode('utf-8').strip()
-        return None
+            try:
+                raw_data = self.serial_connection.readline()
+                return raw_data.decode('utf-8', errors='ignore').strip()
+            except UnicodeDecodeError as e:
+                print(f"Decoding error: {e}")
+                return None
 
     def available(self) -> bool:
         return self.serial_connection.in_waiting > 0

@@ -6,7 +6,8 @@ DataRecorder::DataRecorder(int bufferSize, uint8_t dataFieldsToRecord)
 }
 
 void DataRecorder::recordData(long timestamp, long motor_sp, long motor_pos, long joint_pos) {
-    if (bufferIdx < bufferSize) {
+    int fieldsToRecord = __builtin_popcount(dataFieldsToRecord);
+    if (bufferIdx + fieldsToRecord <= bufferSize) {
         if (dataFieldsToRecord & TIMESTAMP) dataBuffer[bufferIdx++] = timestamp;
         if (dataFieldsToRecord & MOTOR_SP) dataBuffer[bufferIdx++] = motor_sp;
         if (dataFieldsToRecord & MOTOR_POS) dataBuffer[bufferIdx++] = motor_pos;
@@ -25,6 +26,7 @@ void DataRecorder::saveData() {
             }
         }
         Serial.println();
+        delay(100);
     }
     resetBuffer();
 }

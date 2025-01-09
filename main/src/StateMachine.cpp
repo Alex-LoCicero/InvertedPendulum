@@ -33,31 +33,39 @@ void StateMachine::update() {
 }
 
 void StateMachine::setState(State newState) {
+    // Serial.println("Setting state...");
     currentState = newState;
 }
 
 void StateMachine::onEnable() {
     // Actions to perform when enabling
-    Serial.println("Enabling...");
+    // Serial.println("Enabling...");
     motor.enableOutputs();
+    timer.reset();
     timer.start();
 }
 
 void StateMachine::onSave() {
     // Actions to perform when saving
-    Serial.println("Saving data...");
+    // Serial.println("Saving data...");
     recorder.saveData();
     recorder.resetBuffer();
 }
 
 void StateMachine::onDisable() {
     motor.disableOutputs();
-    Serial.println("Disabled...");
+    // Serial.println("Disabled...");
+    onSave(); // Save data upon disabling
 }
 
 void StateMachine::running() {
     motor.run();
-    recorder.recordData(timer.elapsed(), motor.getTargetPosition(), motor.getPosition(),
-                 InterruptHandler::angle);
+    // Serial.println("Recording...");
+    //recorder.recordData(timer.elapsed(), motor.getTargetPosition(), motor.getPosition(),
+                //  InterruptHandler::angle);
+    recorder.recordData(timer.elapsed(), 6, 9, InterruptHandler::angle);
+}
 
+State StateMachine::getCurrentState() {
+    return currentState;
 }
